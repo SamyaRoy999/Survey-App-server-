@@ -33,7 +33,18 @@ async function run() {
         // user releted api 
         app.post('/users', async (req, res) => {
             const user = req.body;
+            const quary = { email: user.email }
+            const existingUser = await collectionUser.findOne(quary)
+
+            if (existingUser) {
+                return res.send({ massages: 'user already exist', insertedID: null })
+            }
             const result = await collectionUser.insertOne(user);
+            res.send(result);
+        })
+
+        app.get('/users', async (req, res) => {
+            const result = await collectionUser.find().toArray();
             res.send(result);
         })
 
