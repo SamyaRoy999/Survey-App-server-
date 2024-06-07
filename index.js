@@ -68,19 +68,24 @@ async function run() {
         // survayor releted data 
 
         app.post('/survayCreate', async (req, res) => {
-            const {title, description, options, category, deadline} = req.body;
+            const { title, description, options, category, deadline } = req.body;
             const surveyData = {
                 title,
                 description,
                 options,
                 category,
-                deadline: new Date(deadline),
+                deadline,
                 status: 'publish',
                 timestamp: new Date()
-              };
-              const result = await collectionSurvay.insertOne(surveyData);
-              res.send(result);
+            };
+            const result = await collectionSurvay.insertOne(surveyData);
+            res.send(result);
 
+        })
+
+        app.get('/survayCreate', async (req, res) => {
+            const result = await collectionSurvay.find().toArray();
+            res.send(result);
         })
 
 
