@@ -29,6 +29,7 @@ async function run() {
         // await client.connect();
 
         const collectionUser = client.db('SurveyScape').collection('users');
+        const collectionSurvay = client.db('SurveyScape').collection('survay');
 
 
         // user releted api 
@@ -62,6 +63,24 @@ async function run() {
             const result = await collectionUser.updateOne(quary, updateDoc);
             console.log(result);
             res.send(result);
+        })
+
+        // survayor releted data 
+
+        app.post('/survayCreate', async (req, res) => {
+            const {title, description, options, category, deadline} = req.body;
+            const surveyData = {
+                title,
+                description,
+                options,
+                category,
+                deadline: new Date(deadline),
+                status: 'publish',
+                timestamp: new Date()
+              };
+              const result = await collectionSurvay.insertOne(surveyData);
+              res.send(result);
+
         })
 
 
