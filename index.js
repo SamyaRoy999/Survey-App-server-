@@ -87,6 +87,13 @@ async function run() {
             const result = await collectionSurvay.find().toArray();
             res.send(result);
         })
+        
+        app.get('/survayCreate/:id', async(req, res) => {
+            const id = req.params.id;
+            const quary = {_id: new ObjectId(id)};
+            const result = await collectionSurvay.findOne(quary);
+            res.send(result); 
+        })
 
 
         await client.db("admin").command({ ping: 1 });
