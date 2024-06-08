@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
+const jwt = require('jsonwebtoken');
 const port = process.env.PORT || 5000
 require('dotenv').config();
 
@@ -32,6 +33,30 @@ async function run() {
         const collectionSurvay = client.db('SurveyScape').collection('survay');
 
 
+        // jwt releted 
+
+        app.post('/jwt', async (req, res) => {
+            const user = req.body;
+            const token = await jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+            res.send({ token });
+        })
+
+        // midelwere
+
+        const verifyToken = (req, res, next) => {
+            if (!req.headers.authorazation) {
+                return res.status(401).send({ massages: 'forbidden access' });
+            }
+            const token = req.headers.authorazation.split(' ')[1]
+            jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+                if (err) {
+                    return res.status(401).send({ massages: 'forbidden access' });
+                }
+                req.decoded = decoded;
+                next()
+            })
+        }
+
         // user releted api 
         app.post('/users', async (req, res) => {
             const user = req.body;
@@ -45,7 +70,7 @@ async function run() {
             res.send(result);
         })
 
-        app.get('/users', async (req, res) => {
+        app.get('/users', verifyToken, async (req, res) => {
             const result = await collectionUser.find().toArray();
             res.send(result);
         })
@@ -87,12 +112,12 @@ async function run() {
             const result = await collectionSurvay.find().toArray();
             res.send(result);
         })
-        
-        app.get('/survayCreate/:id', async(req, res) => {
+
+        app.get('/survayCreate/:id', async (req, res) => {
             const id = req.params.id;
-            const quary = {_id: new ObjectId(id)};
+            const quary = { _id: new ObjectId(id) };
             const result = await collectionSurvay.findOne(quary);
-            res.send(result); 
+            res.send(result);
         })
 
 
