@@ -37,6 +37,7 @@ async function run() {
 
         app.post('/jwt', async (req, res) => {
             const user = req.body;
+            console.log(user, 'user email');
             const token = await jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
             res.send({ token });
         })
@@ -44,14 +45,15 @@ async function run() {
         // midelwere
 
         const verifyToken = (req, res, next) => {
-            if (!req.headers.authorazation) {
-                return res.status(401).send({ massages: 'forbidden access' });
+            if (!req.headers.authorization) {
+                return res.status(401).send({ massage: 'forbidden access' });
             }
-            const token = req.headers.authorazation.split(' ')[1]
+            const token = req.headers.authorization.split(' ')[1]
             jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
                 if (err) {
-                    return res.status(401).send({ massages: 'forbidden access' });
+                    return res.status(401).send({ massage: 'forbidden access' });
                 }
+                console.log("ds", decoded);
                 req.decoded = decoded;
                 next()
             })
@@ -75,6 +77,40 @@ async function run() {
             res.send(result);
         })
 
+        app.get('/users/admin/:email', verifyToken, async (req, res) => {
+            const email = req.params.email;
+            if (email !== req.decoded.email) {
+
+                return res.status(403).send({ massage: 'unauthorized access' });
+            }
+            const quary = { email: email };
+            const user = await collectionUser.findOne(quary);
+            let admin = false;
+            if (user) {
+                admin = user?.role === 'admin';
+                console.log(admin);
+            }
+            res.send({ admin });
+        });
+
+        app.get('/users/survayor/:email', verifyToken, async (req, res) => {
+            const email = req.params.email;
+            console.log("Requested email:", email);
+            console.log("Decoded email:", req.decoded.email);
+            if (email !== req.decoded.email) {
+
+                return res.status(403).send({ massage: 'unauthorized access' });
+            }
+            const quary = { email: email };
+            const user = await collectionUser.findOne(quary);
+            let surveyor = false;
+            if (user) {
+                surveyor = user?.role === 'surveyor';
+                console.log(surveyor);
+            }
+            res.send({ surveyor });
+        })
+
         app.patch('/users/admin/:id', async (req, res) => {
             const id = req.params.id;
             const update = req.body;
@@ -86,7 +122,6 @@ async function run() {
                 }
             };
             const result = await collectionUser.updateOne(quary, updateDoc);
-            console.log(result);
             res.send(result);
         })
 
