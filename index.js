@@ -95,8 +95,6 @@ async function run() {
 
         app.get('/users/survayor/:email', verifyToken, async (req, res) => {
             const email = req.params.email;
-            console.log("Requested email:", email);
-            console.log("Decoded email:", req.decoded.email);
             if (email !== req.decoded.email) {
 
                 return res.status(403).send({ massage: 'unauthorized access' });
@@ -153,6 +151,15 @@ async function run() {
             const quary = { _id: new ObjectId(id) };
             const result = await collectionSurvay.findOne(quary);
             res.send(result);
+        })
+        app.patch('/vote/:id', async (req, res) => {
+            const id = req.params.id;
+            const {option} = req.body
+            const quary = {_id: new ObjectId(id)};
+            const updateDoc = { $inc: { [`votes.${option}`]: 1 } };
+            const result = await collectionSurvay.updateOne(quary, updateDoc);
+            res.send(result);
+
         })
 
 
