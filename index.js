@@ -1,12 +1,16 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const app = express();
 const jwt = require('jsonwebtoken');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const port = process.env.PORT || 5000
-require('dotenv').config();
 
 // middlewere 
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:5173', // Frontend URL
+    credentials: true,
+  }));
 app.use(express.json());
 
 
@@ -88,7 +92,6 @@ async function run() {
             let admin = false;
             if (user) {
                 admin = user?.role === 'admin';
-                console.log(admin);
             }
             res.send({ admin });
         });
@@ -104,7 +107,6 @@ async function run() {
             let surveyor = false;
             if (user) {
                 surveyor = user?.role === 'surveyor';
-                console.log(surveyor);
             }
             res.send({ surveyor });
         })
@@ -112,7 +114,6 @@ async function run() {
         app.patch('/users/admin/:id', async (req, res) => {
             const id = req.params.id;
             const update = req.body;
-            console.log(id, update);
             const quary = { _id: new ObjectId(id) };
             const updateDoc = {
                 $set: {
@@ -152,16 +153,32 @@ async function run() {
             const result = await collectionSurvay.findOne(quary);
             res.send(result);
         })
+
         app.patch('/vote/:id', async (req, res) => {
             const id = req.params.id;
-            const {option} = req.body
-            const quary = {_id: new ObjectId(id)};
+            const { option } = req.body
+            const quary = { _id: new ObjectId(id) };
             const updateDoc = { $inc: { [`votes.${option}`]: 1 } };
             const result = await collectionSurvay.updateOne(quary, updateDoc);
             res.send(result);
 
         })
 
+        // payment intend
+        app.post('/create-payment-intent', async (req, res) => {
+            const {payment} = req.body;
+            const amount = parseInt(payment * 100);
+            console.log(amount, 'pro-user amount');
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: "usd",
+                payment_method_types: ['card']
+            })
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+              });
+
+        })
 
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
