@@ -111,6 +111,20 @@ async function run() {
             res.send({ surveyor });
         })
 
+        app.get('/users/proUser/:email', verifyToken, async (req, res) => {
+            const email = req.params.email;
+            if (email !== req.decoded.email) {
+                return res.status(403).send({ massage: 'unauthorized access' });
+            }
+            const quary = { email: email };
+            const user = await collectionUser.findOne(quary);
+            let proUser = false;
+            if (user) {
+                proUser = user?.role === 'pro-user';
+            }
+            res.send({ proUser });
+        })
+
         app.patch('/users/admin/:id', async (req, res) => {
             const id = req.params.id;
             const update = req.body;
@@ -126,7 +140,7 @@ async function run() {
 
         // survayor releted data 
 
-        app.post('/survayCreate', async (req, res) => {
+        app.post('/survayCreate', verifyToken, async (req, res) => {
             const { title, description, options, category, deadline } = req.body;
             const surveyData = {
                 title,
