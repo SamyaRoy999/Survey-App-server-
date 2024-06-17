@@ -10,7 +10,7 @@ const port = process.env.PORT || 5000
 app.use(cors({
     origin: 'http://localhost:5173', // Frontend URL
     credentials: true,
-  }));
+}));
 app.use(express.json());
 
 
@@ -170,17 +170,16 @@ async function run() {
 
         app.patch('/vote/:id', async (req, res) => {
             const id = req.params.id;
-            const { option } = req.body
+            const { vote, name, email, photo } = req.body
             const quary = { _id: new ObjectId(id) };
-            const updateDoc = { $inc: { [`votes.${option}`]: 1 } };
+            const updateDoc = { $push: { voters: { vote, name, email, photo } } };
             const result = await collectionSurvay.updateOne(quary, updateDoc);
             res.send(result);
-
         })
 
         // payment intend
         app.post('/create-payment-intent', async (req, res) => {
-            const {payment} = req.body;
+            const { payment } = req.body;
             const amount = parseInt(payment * 100);
             console.log(amount, 'pro-user amount');
             const paymentIntent = await stripe.paymentIntents.create({
@@ -190,8 +189,17 @@ async function run() {
             })
             res.send({
                 clientSecret: paymentIntent.client_secret,
-              });
+            });
 
+        })
+
+        // Participate survey email get 
+
+        app.get('/participate/surveys/:email', async(req, res) => {
+            const email = req.params.email;
+            const filterEmail = { "voters.email": email};
+            const result = await collectionSurvay.find(filterEmail).toArray();
+            res.send(result)   
         })
 
         await client.db("admin").command({ ping: 1 });
