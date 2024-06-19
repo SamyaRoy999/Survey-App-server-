@@ -214,6 +214,8 @@ async function run() {
             res.send(result)
         })
 
+        // prouser comment find  
+        
         app.get('/proUser/comment/:email', verifyToken, async (req, res) => {
             const email = req.params.email;
             const filter = { 'comment.email': email };
@@ -238,6 +240,23 @@ async function run() {
             const result = await collectionSurvay.updateOne(quary, updateDoc);
             res.send(result)
         })
+
+        // survay report find on user
+
+        app.get('/user/report/:email', async (req, res) => {
+            const email = req.params.email;
+            const filter = { 'reports.userEmail': email };
+            const result = await collectionSurvay.find(filter).toArray();
+            const filteredReports = result.map(survey => {
+                return {
+                    ...survey,
+                    reports: survey.reports.filter(rep => rep.userEmail === email)
+                };
+            });
+            console.log(filteredReports);
+            res.send(filteredReports);
+        })
+
 
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
