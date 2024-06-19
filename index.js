@@ -210,10 +210,34 @@ async function run() {
             const { comment, name, email, photo, timestamp } = req.body;
             const quary = { _id: new ObjectId(id) };
             const updateDoc = { $push: { comment: { comment, name, email, photo, timestamp } } };
-            const result  = await collectionSurvay.updateOne(quary, updateDoc);
+            const result = await collectionSurvay.updateOne(quary, updateDoc);
             res.send(result)
         })
 
+        app.get('/proUser/comment/:email', verifyToken, async (req, res) => {
+            const email = req.params.email;
+            const filter = { 'comment.email': email };
+            const result = await collectionSurvay.find(filter).toArray();
+            const filteredComments = result.map(survey => {
+                return {
+                    ...survey,
+                    comment: survey.comment.filter(comt => comt.email === email)
+                };
+            });
+
+            res.send(filteredComments);
+        })
+
+        //  Report survay 
+
+        app.patch('/user/report/:id', async (req, res) => {
+            const id = req.params.id;
+            const { surveyId, userEmail, reason, timestamp } = req.body;
+            const quary = { _id: new ObjectId(id) };
+            const updateDoc = { $push: { reports: { surveyId, userEmail, reason, timestamp } } };
+            const result = await collectionSurvay.updateOne(quary, updateDoc);
+            res.send(result)
+        })
 
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
