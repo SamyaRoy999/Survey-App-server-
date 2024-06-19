@@ -177,6 +177,7 @@ async function run() {
             res.send(result);
         })
 
+
         // payment intend
         app.post('/create-payment-intent', async (req, res) => {
             const { payment } = req.body;
@@ -195,12 +196,24 @@ async function run() {
 
         // Participate survey email get 
 
-        app.get('/participate/surveys/:email', async(req, res) => {
+        app.get('/participate/surveys/:email', async (req, res) => {
             const email = req.params.email;
-            const filterEmail = { "voters.email": email};
+            const filterEmail = { "voters.email": email };
             const result = await collectionSurvay.find(filterEmail).toArray();
-            res.send(result)   
+            res.send(result);
+        });
+
+        // Pro user comment survey 
+
+        app.patch('/proUser/comment/:id', verifyToken, async (req, res) => {
+            const id = req.params.id;
+            const { comment, name, email, photo, timestamp } = req.body;
+            const quary = { _id: new ObjectId(id) };
+            const updateDoc = { $push: { comment: { comment, name, email, photo, timestamp } } };
+            const result  = await collectionSurvay.updateOne(quary, updateDoc);
+            res.send(result)
         })
+
 
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
