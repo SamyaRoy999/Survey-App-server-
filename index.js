@@ -141,10 +141,11 @@ async function run() {
         // survayor releted data 
 
         app.post('/survayCreate', verifyToken, async (req, res) => {
-            const { title, description, options, category, deadline } = req.body;
+            const { title, description, surveyorEmail, options, category, deadline } = req.body;
             const surveyData = {
                 title,
                 description,
+                surveyorEmail,
                 options,
                 category,
                 deadline,
@@ -156,17 +157,29 @@ async function run() {
 
         })
 
+        // login survayor get her creation survey data
+        app.get('/survayorSurvey/:email', verifyToken, async (req, res) => {
+            const email = req.params.email;
+            const quary = { surveyorEmail: email };
+            const result = await collectionSurvay.find(quary).toArray();
+            res.send(result);
+        })
+
+        // all survey get 
         app.get('/survayCreate', async (req, res) => {
             const result = await collectionSurvay.find().toArray();
             res.send(result);
         })
 
+        // single survay get 
         app.get('/survayCreate/:id', async (req, res) => {
             const id = req.params.id;
             const quary = { _id: new ObjectId(id) };
             const result = await collectionSurvay.findOne(quary);
             res.send(result);
         })
+
+
 
         app.patch('/vote/:id', async (req, res) => {
             const id = req.params.id;
@@ -215,7 +228,7 @@ async function run() {
         })
 
         // prouser comment find  
-        
+
         app.get('/proUser/comment/:email', verifyToken, async (req, res) => {
             const email = req.params.email;
             const filter = { 'comment.email': email };
