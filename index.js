@@ -8,7 +8,7 @@ const port = process.env.PORT || 5000
 
 // middlewere 
 app.use(cors({
-    origin: 'http://localhost:5173', 
+    origin: 'http://localhost:5173',
     credentials: true,
 }));
 
@@ -64,7 +64,7 @@ async function run() {
             })
         }
 
-        // user releted api 
+        // user releted api for admin
         app.post('/users', async (req, res) => {
             const user = req.body;
             const quary = { email: user.email }
@@ -139,6 +139,27 @@ async function run() {
             res.send(result);
         })
 
+        // all survay for unpublic survay route
+        app.get('/allSurvey', verifyToken, async (req, res) => {
+            const result = await collectionSurvay.find().toArray();
+            res.send(result);
+        })
+
+        //admin survay unpublish / publish
+        app.patch('/survayStatus/:id', verifyToken, async (req, res) => {
+            const id = req.params.id;
+            const quary = { _id: new ObjectId(id) };
+            const { status } = req.body;
+            const updateDoc = {
+                $set: {
+                    status: status,
+                }
+            };
+            const result = await collectionSurvay.updateOne(quary, updateDoc);
+            res.send(result);
+
+        })
+
         // survayor releted data 
 
         app.post('/survayCreate', verifyToken, async (req, res) => {
@@ -172,8 +193,8 @@ async function run() {
             const quary = { _id: new ObjectId(id) };
             const { title, description, category, deadline } = req.body;
             const option = { upsert: true };
-            const updateSurvay ={
-                    $set: {title, description, category, deadline} 
+            const updateSurvay = {
+                $set: { title, description, category, deadline }
             };
 
             const result = await collectionSurvay.updateOne(quary, updateSurvay, option);
