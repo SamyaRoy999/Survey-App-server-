@@ -36,13 +36,13 @@ async function run() {
 
         const collectionUser = client.db('SurveyScape').collection('users');
         const collectionSurvay = client.db('SurveyScape').collection('survay');
+        const collectionPayment = client.db('SurveyScape').collection('payment');
 
 
         // jwt releted 
 
         app.post('/jwt', async (req, res) => {
             const user = req.body;
-            console.log(user, 'user email');
             const token = await jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
             res.send({ token });
         })
@@ -58,7 +58,6 @@ async function run() {
                 if (err) {
                     return res.status(401).send({ massage: 'forbidden access' });
                 }
-                console.log("ds", decoded);
                 req.decoded = decoded;
                 next()
             })
@@ -137,6 +136,14 @@ async function run() {
             };
             const result = await collectionUser.updateOne(quary, updateDoc);
             res.send(result);
+        })
+
+        app.delete('/user/role/:id', verifyToken, async (req, res) => {
+            const id = req.params.id;
+            console.log(id);
+            const quary = { _id: new ObjectId(id) };
+            const result = await collectionUser.deleteOne(quary);
+            res.send(result)
         })
 
         // all survay for unpublic survay route
@@ -231,7 +238,6 @@ async function run() {
         app.post('/create-payment-intent', async (req, res) => {
             const { payment } = req.body;
             const amount = parseInt(payment * 100);
-            console.log(amount, 'pro-user amount');
             const paymentIntent = await stripe.paymentIntents.create({
                 amount: amount,
                 currency: "usd",
@@ -243,8 +249,21 @@ async function run() {
 
         })
 
-        // Participate survey email get 
+        // payment histroy
+        app.post('/payment', async (req, res) => {
+            const payment = req.body;
+            const result = await collectionPayment.insertOne(payment)
+            res.send(result)
 
+        })
+
+        // all payment show admin deshboard
+        app.get('/payment', verifyToken, async (req, res) => {
+            const result = await collectionPayment.find().toArray();
+            res.send(result)
+        })
+
+        // Participate survey email get 
         app.get('/participate/surveys/:email', async (req, res) => {
             const email = req.params.email;
             const filterEmail = { "voters.email": email };
@@ -253,7 +272,6 @@ async function run() {
         });
 
         // Pro user comment survey 
-
         app.patch('/proUser/comment/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
             const { comment, name, email, photo, timestamp } = req.body;
@@ -302,7 +320,7 @@ async function run() {
                     reports: survey.reports.filter(rep => rep.userEmail === email)
                 };
             });
-            console.log(filteredReports);
+
             res.send(filteredReports);
         })
 
