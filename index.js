@@ -138,6 +138,7 @@ async function run() {
             res.send(result);
         })
 
+        // delete user
         app.delete('/user/role/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
             console.log(id);
@@ -165,6 +166,15 @@ async function run() {
             const result = await collectionSurvay.updateOne(quary, updateDoc);
             res.send(result);
 
+        })
+
+        // single survay data survay responses
+
+        app.get('/survaySingle/:id', verifyToken,  async (req, res) => {
+            const id = req.params.id;
+            const quary = { _id: new ObjectId(id) };
+            const result = await collectionSurvay.findOne(quary);
+            res.send(result);
         })
 
         // survayor releted data 
