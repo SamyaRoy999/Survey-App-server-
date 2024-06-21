@@ -8,9 +8,10 @@ const port = process.env.PORT || 5000
 
 // middlewere 
 app.use(cors({
-    origin: 'http://localhost:5173', // Frontend URL
+    origin: 'http://localhost:5173', 
     credentials: true,
 }));
+
 app.use(express.json());
 
 
@@ -162,6 +163,20 @@ async function run() {
             const email = req.params.email;
             const quary = { surveyorEmail: email };
             const result = await collectionSurvay.find(quary).toArray();
+            res.send(result);
+        })
+
+        // login survayor survay update 
+        app.put('/survayUpdate/:id', verifyToken, async (req, res) => {
+            const id = req.params.id;
+            const quary = { _id: new ObjectId(id) };
+            const { title, description, category, deadline } = req.body;
+            const option = { upsert: true };
+            const updateSurvay ={
+                    $set: {title, description, category, deadline} 
+            };
+
+            const result = await collectionSurvay.updateOne(quary, updateSurvay, option);
             res.send(result);
         })
 
