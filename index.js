@@ -75,11 +75,15 @@ async function run() {
             const result = await collectionUser.insertOne(user);
             res.send(result);
         })
+        
+        // get all user database
 
         app.get('/users', verifyToken, async (req, res) => {
             const result = await collectionUser.find().toArray();
             res.send(result);
         })
+
+        // admin for eamil find for deshboard
 
         app.get('/users/admin/:email', verifyToken, async (req, res) => {
             const email = req.params.email;
@@ -96,6 +100,8 @@ async function run() {
             res.send({ admin });
         });
 
+        // surveyor email get for deshboard
+
         app.get('/users/survayor/:email', verifyToken, async (req, res) => {
             const email = req.params.email;
             if (email !== req.decoded.email) {
@@ -111,6 +117,8 @@ async function run() {
             res.send({ surveyor });
         })
 
+        // payment user 
+
         app.get('/users/proUser/:email', verifyToken, async (req, res) => {
             const email = req.params.email;
             if (email !== req.decoded.email) {
@@ -124,6 +132,8 @@ async function run() {
             }
             res.send({ proUser });
         })
+
+        // update user role
 
         app.patch('/users/admin/:id', async (req, res) => {
             const id = req.params.id;
@@ -170,7 +180,7 @@ async function run() {
 
         // single survay data survay responses
 
-        app.get('/survaySingle/:id', verifyToken,  async (req, res) => {
+        app.get('/survaySingle/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
             const quary = { _id: new ObjectId(id) };
             const result = await collectionSurvay.findOne(quary);
@@ -232,7 +242,7 @@ async function run() {
             res.send(result);
         })
 
-
+        // vote user infor
 
         app.patch('/vote/:id', async (req, res) => {
             const id = req.params.id;
